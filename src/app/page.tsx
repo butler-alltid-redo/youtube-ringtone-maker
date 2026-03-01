@@ -1,6 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+function sanitizeFilename(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return "ringtone";
+
+  // Keep it cross-platform safe-ish.
+  return trimmed
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, " ")
+    .slice(0, 80)
+    .trim() || "ringtone";
+}
 
 function parseStartTimeToSeconds(input: string): number | null {
   const s = input.trim();
@@ -31,12 +43,42 @@ function parseStartTimeToSeconds(input: string): number | null {
 
 export default function Home() {
   const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [youtubeTitle, setYoutubeTitle] = useState<string | null>(null);
   const [startTime, setStartTime] = useState("0:40");
   const [durationSeconds, setDurationSeconds] = useState(30);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const startSeconds = useMemo(() => parseStartTimeToSeconds(startTime), [startTime]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTitle() {
+      setYoutubeTitle(null);
+      const url = youtubeUrl.trim();
+      if (!url) return;
+
+      // Try YouTube oEmbed for a lightweight title lookup.
+      try {
+        const res = await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(url)}`);
+        if (!res.ok) return;
+        const data = (await res.json().catch(() => null)) as unknown;
+        if (cancelled) return;
+        if (data && typeof data === "object" && "title" in data) {
+          setYoutubeTitle(String((data as { title: unknown }).title));
+        }
+      } catch {
+        // Non-fatal; we'll fall back to a generic filename.
+      }
+    }
+
+    const t = setTimeout(loadTitle, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [youtubeUrl]);
 
   async function onGenerate() {
     setError(null);
@@ -77,7 +119,8 @@ export default function Home() {
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = "ringtone.m4r";
+      const base = sanitizeFilename(youtubeTitle || "ringtone");
+      a.download = `${base}.m4r`;
       document.body.appendChild(a);
       a.click();
       a.remove();
