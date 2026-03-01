@@ -97,7 +97,7 @@ export default function Home() {
           Klistra in en YouTube-länk och ladda ner en färdig ringsignal (.m4r).
         </p>
 
-        <div className="mt-10 space-y-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="mt-6 space-y-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div className="space-y-2">
             <label className="text-sm font-medium">YouTube-länk</label>
             <input
@@ -159,9 +159,6 @@ export default function Home() {
             {busy ? "Skapar…" : "Skapa ringsignal (.m4r)"}
           </button>
 
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Obs: skapandet sker på servern.
-          </p>
         </div>
       </main>
     </div>
