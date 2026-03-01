@@ -42,12 +42,12 @@ export default function Home() {
     setError(null);
 
     if (!youtubeUrl.trim()) {
-      setError("Paste a YouTube URL.");
+      setError("Klistra in en YouTube-länk.");
       return;
     }
 
     if (startSeconds === null) {
-      setError("Start time must be seconds, mm:ss, or hh:mm:ss.");
+      setError("Starttid måste vara i sekunder, mm:ss eller hh:mm:ss.");
       return;
     }
 
@@ -83,7 +83,7 @@ export default function Home() {
       a.remove();
       URL.revokeObjectURL(url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to generate ringtone");
+      setError(e instanceof Error ? e.message : "Kunde inte skapa ringsignalen");
     } finally {
       setBusy(false);
     }
@@ -92,14 +92,14 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
       <main className="mx-auto w-full max-w-2xl px-6 py-12">
-        <h1 className="text-3xl font-semibold tracking-tight">YouTube → iOS Ringtone</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">YouTube → iPhone-ringsignal</h1>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-          Generates a .m4r ringtone by downloading audio with yt-dlp and trimming it with ffmpeg.
+          Klistra in en YouTube-länk och ladda ner en färdig ringsignal (.m4r).
         </p>
 
         <div className="mt-10 space-y-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div className="space-y-2">
-            <label className="text-sm font-medium">YouTube URL</label>
+            <label className="text-sm font-medium">YouTube-länk</label>
             <input
               className="w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-200"
               placeholder="https://www.youtube.com/watch?v=..."
@@ -113,19 +113,19 @@ export default function Home() {
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Start time</label>
+              <label className="text-sm font-medium">Starttid</label>
               <input
                 className="w-full rounded-xl border border-zinc-300 bg-transparent px-4 py-3 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-200"
-                placeholder="mm:ss (e.g. 0:40)"
+                placeholder="mm:ss (t.ex. 0:40)"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
               />
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">Seconds, mm:ss, or hh:mm:ss</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">Sekunder, mm:ss eller hh:mm:ss</p>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Duration</label>
+                <label className="text-sm font-medium">Längd</label>
                 <span className="text-sm tabular-nums text-zinc-600 dark:text-zinc-300">
                   {durationSeconds}s
                 </span>
@@ -154,13 +154,13 @@ export default function Home() {
           <button
             onClick={onGenerate}
             disabled={busy}
-            className="inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-white"
+            className="inline-flex w-full items-center justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-white dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950"
           >
-            {busy ? "Generating…" : "Generate ringtone (.m4r)"}
+            {busy ? "Skapar…" : "Skapa ringsignal (.m4r)"}
           </button>
 
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Note: generation happens server-side. This will download the audio and run ffmpeg on the server.
+            Obs: skapandet sker på servern.
           </p>
         </div>
       </main>
