@@ -9,10 +9,14 @@ RUN apt-get update \
     ca-certificates \
     python3 \
     python3-pip \
+    python3-venv \
   && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp via pip (apt is often outdated)
-RUN pip3 install --no-cache-dir -U yt-dlp
+# Install yt-dlp in a venv (Debian uses PEP 668: global pip installs may fail)
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV \
+  && $VIRTUAL_ENV/bin/pip install --no-cache-dir -U pip yt-dlp
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /app
 
