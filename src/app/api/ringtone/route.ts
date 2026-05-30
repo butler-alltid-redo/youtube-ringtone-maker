@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
 const MAX_START_SECONDS = 6 * 60 * 60; // 6h cap
+const MIN_DURATION_FOR_FADE_SECONDS = 4;
 
 function extractYouTubeVideoId(inputUrl: string): string {
   let url: URL;
@@ -93,7 +94,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), `ringtone-${randomUUID()}-`));
+  const workDir = await fs.mkdtemp(
+    path.join(os.tmpdir(), `ringtone-${randomUUID()}-`),
+  );
   const inputPath = path.join(workDir, "input.m4a");
   const outputPath = path.join(workDir, "ringtone.m4r");
 
@@ -127,14 +130,18 @@ export async function POST(req: Request) {
       // fallback: pick first .m4a in directory
       const files = await fs.readdir(workDir);
       const m4a = files.find((f) => f.toLowerCase().endsWith(".m4a"));
-      if (!m4a) throw new Error("Download succeeded but no .m4a file was found");
+      if (!m4a)
+        throw new Error("Download succeeded but no .m4a file was found");
       await fs.rename(path.join(workDir, m4a), inputPath);
     }
 
-    // Fade settings (seconds)
+    // Fade only when the clip is long enough to benefit from it.
+    const shouldApplyFade = durationSeconds >= MIN_DURATION_FOR_FADE_SECONDS;
     const fade = Math.min(2, Math.max(0.25, durationSeconds / 3));
     const fadeOutStart = Math.max(0, durationSeconds - fade);
-    const af = `afade=t=in:st=0:d=${fade},afade=t=out:st=${fadeOutStart}:d=${fade}`;
+    const af = shouldApplyFade
+      ? `afade=t=in:st=0:d=${fade},afade=t=out:st=${fadeOutStart}:d=${fade}`
+      : null;
 
     // Generate ringtone segment. We seek/trim so the filter timeline starts at 0.
     await run(
@@ -155,8 +162,7 @@ export async function POST(req: Request) {
         "aac",
         "-b:a",
         "192k",
-        "-af",
-        af,
+        ...(af ? ["-af", af] : []),
         "-y",
         outputPath,
       ],
